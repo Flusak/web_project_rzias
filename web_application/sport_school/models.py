@@ -29,7 +29,7 @@ def validate_phone_number(phone_number):
     reg_pattern = re.compile(r"(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$")
     if not reg_pattern.match(phone_number):
         raise ValidationError(
-            gettext_lazy('%(phone_number)s is uncorrect number'),
+            gettext_lazy('%(phone_number)s некорректный номер'),
             params={'phone_number': phone_number}
         )
     
@@ -120,8 +120,8 @@ class Groups_Training(models.Model):
         verbose_name="Групповые треннировки"
         verbose_name_plural="Групповые треннировки"
 
-    id_trainer=models.ForeignKey(Coach, on_delete=models.RESTRICT, verbose_name="Тренер")
-    id_group=models.ForeignKey(Groups, on_delete=models.RESTRICT, verbose_name="Группа")
+    id_trainer=models.ForeignKey(Coach, verbose_name="Тренер",  on_delete=models.RESTRICT)
+    id_group=models.ForeignKey(Groups, verbose_name="Группа", on_delete=models.RESTRICT)
     training_day=models.DateTimeField(verbose_name="Дата и время тренировки")
     type_training=models.TextField(verbose_name="Тип тренировки")
 
@@ -164,8 +164,8 @@ class Individual_Training(models.Model):
         verbose_name="Индивидуальные треннировки"
         verbose_name_plural="Индивидуальные треннировки"
 
-    id_trainer=models.ForeignKey(Coach, on_delete=models.RESTRICT,verbose_name="ID тренера")
-    id_pupiles=models.ForeignKey(Pupiles, on_delete=models.RESTRICT, verbose_name="ID воспитанника")
+    id_trainer=models.ForeignKey(Coach, verbose_name="ID тренера", on_delete=models.RESTRICT)
+    id_pupiles=models.ForeignKey(Pupiles, verbose_name="ID воспитанника", on_delete=models.RESTRICT)
     training_day=models.DateTimeField(verbose_name="Дата тренировки")
     type_training=models.TextField(verbose_name="Тип тренировки")
 
@@ -224,4 +224,4 @@ class Individual_Training(models.Model):
 
 
     def __str__(self) -> str:
-        return f'{self.id_trainer} {self.id_pupiles} {self.training_day} {self.type_training}'
+        return f'{self.trainer_id} {self.pupiles_id} {self.training_day} {self.type_training}'
