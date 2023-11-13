@@ -125,9 +125,8 @@ class Groups_Training(models.Model):
     training_day=models.DateTimeField(verbose_name="Дата и время тренировки")
     type_training=models.TextField(verbose_name="Тип тренировки")
 
-
     # Валидация времени занятий
-    def validate_unique(self, *args, **kwargs) -> None:
+    def validate_unique(self, exclude: Collection[str]) -> None:
         if (self.training_day.date() <= datetime.now().date() 
             or self.training_day.time() < time(9, 59, 59) 
             or self.training_day.time() > time(20, 0, 1)):
@@ -139,7 +138,7 @@ class Groups_Training(models.Model):
         trainers_days = Groups_Training.objects.filter(id_trainer=self.id_trainer).values('training_day').order_by('-training_day')
         for i in trainers_days:
             print(i['training_day'])
-            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40)):
+            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day']):
                 print(i['training_day'] + timedelta(hours=1, minutes=40))
                 raise ValidationError( 
                    gettext_lazy('%(training_day)s в это время у тренера есть занятие'),
@@ -148,12 +147,28 @@ class Groups_Training(models.Model):
             
         grous_days = Groups_Training.objects.filter(id_group=self.id_group).values('training_day').order_by('-training_day')
         for i in grous_days:
-            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40)):
+            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day']):
                 print (i['training_day'] + timedelta(hours=1, minutes=40))
                 raise ValidationError(
                    gettext_lazy('%(training_day)s в это время у группы есть занятие'),
                    params={'training_day': self.training_day.strftime('%d.%m.%Y %H:%M:%S')}
                    )
+            
+        trainers_days = Individual_Training.objects.filter(id_trainer=self.id_trainer).values('training_day').order_by('-training_day')
+        for i in trainers_days:
+            print(i['training_day'])
+            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day']):
+                print(i['training_day'] + timedelta(hours=1, minutes=40))
+                raise ValidationError( 
+                   gettext_lazy('%(training_day)s в это время у тренера есть занятие'),
+                   params={'training_day': self.training_day.strftime('%d.%m.%Y %H:%M:%S')}
+                   )
+        return super().validate_unique(exclude)
+    
+    def __str__(self) -> str:
+        return f'''{self.id_trainer} {self.id_group} {self.training_day} {self.type_training}'''
+    
+    
 
 
 # Индивидуальные группировки
@@ -171,7 +186,7 @@ class Individual_Training(models.Model):
 
 
     # Валидация времени занятий
-    def validate_unique(self, *args, **kwargs) -> None:
+    def validate_unique(self, exclude: Collection[str]) -> None:
         if (self.training_day.date() <= datetime.now().date() 
             or self.training_day.time() < time(9, 59, 59) 
             or self.training_day.time() > time(20, 0, 1)):
@@ -183,7 +198,7 @@ class Individual_Training(models.Model):
         trainers_days = Groups_Training.objects.filter(id_trainer=self.id_trainer).values('training_day').order_by('-training_day')
         for i in trainers_days:
             print(i['training_day'])
-            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40)):
+            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day']):
                 print(i['training_day'] + timedelta(hours=1, minutes=40))
                 raise ValidationError( 
                    gettext_lazy('%(training_day)s в это время у тренера есть занятие с группой'),
@@ -193,7 +208,7 @@ class Individual_Training(models.Model):
         trainers_days = Individual_Training.objects.filter(id_trainer=self.id_trainer).values('training_day').order_by('-training_day')
         for i in trainers_days:
             print(i['training_day'])
-            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40)):
+            if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day']):
                 print(i['training_day'] + timedelta(hours=1, minutes=40))
                 raise ValidationError( 
                    gettext_lazy('%(training_day)s в это время у тренера есть индивидуальное занятие с воспитанником'),
@@ -204,7 +219,7 @@ class Individual_Training(models.Model):
         for i in trainers_days:
             print(i['training_day'])
             if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40)):
-                print(i['training_day'] + timedelta(hours=1, minutes=40))
+                print(self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day'])
                 raise ValidationError( 
                    gettext_lazy('%(training_day)s в это время у тренера есть индивидуальное занятие с воспитанником'),
                    params={'training_day': self.training_day.strftime('%d.%m.%Y %H:%M:%S')}
@@ -215,13 +230,14 @@ class Individual_Training(models.Model):
             trainers_days = Groups_Training.objects.filter(id_group=pupile[0]['id_groups']).values('training_day').order_by('-training_day')
             for i in trainers_days:
                 print(i['training_day'])
-                if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40)):
+                if not (self.training_day > i['training_day'] + timedelta(hours=1, minutes=40) or self.training_day + timedelta(hours=1, minutes=40) < i['training_day']):
                     print(i['training_day'] + timedelta(hours=1, minutes=40))
                     raise ValidationError( 
                        gettext_lazy('%(training_day)s в это время у воспитанника есть занятие с группой'),
                        params={'training_day': self.training_day.strftime('%d.%m.%Y %H:%M:%S')}
                        )
-
-
+        return super().validate_unique(exclude)
+    
     def __str__(self) -> str:
-        return f'{self.trainer_id} {self.pupiles_id} {self.training_day} {self.type_training}'
+        return f'''{self.id_trainer} {self.id_pupiles} {self.training_day} {self.type_training}'''
+

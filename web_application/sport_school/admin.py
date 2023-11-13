@@ -38,7 +38,16 @@ class Groups_Training_admin(admin.ModelAdmin):
     raw_id_fields=('id_trainer', 'id_group')
 
 class Individual_Training_admin(admin.ModelAdmin):
-    list_display=('id_trainer', 'id_pupiles', 'training_day', 'type_training')
+    def my_pupiles(self, obj):
+        return f'{obj.id_pupiles.first_name} {obj.id_pupiles.second_name}'
+
+    def my_coach(self, obj):
+        return f'{obj.id_trainer.first_name} {obj.id_trainer.second_name}'
+    
+    my_pupiles.short_description="Воспитанник"
+    my_coach.short_description="Тренер"
+
+    list_display=('my_coach', 'my_pupiles', 'training_day', 'type_training')
 
     search_fields=['id_trainer__id_trainer', 'id_trainer__first_name',
                    'id_pupiles__id_pupiles', 'id_pupiles__first_name']
