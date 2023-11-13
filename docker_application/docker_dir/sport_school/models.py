@@ -127,6 +127,9 @@ class Groups_Training(models.Model):
 
     # Валидация времени занятий
     def validate_unique(self, exclude: Collection[str]) -> None:
+        if self.training_day is None or self.id_trainer is None or self.id_group is None:
+            return super().validate_unique(exclude)
+        
         if (self.training_day.date() <= datetime.now().date() 
             or self.training_day.time() < time(9, 59, 59) 
             or self.training_day.time() > time(20, 0, 1)):
@@ -187,6 +190,9 @@ class Individual_Training(models.Model):
 
     # Валидация времени занятий
     def validate_unique(self, exclude: Collection[str]) -> None:
+        if self.training_day is None or self.id_trainer is None or self.id_pupiles is None:
+            return super().validate_unique(exclude)
+        
         if (self.training_day.date() <= datetime.now().date() 
             or self.training_day.time() < time(9, 59, 59) 
             or self.training_day.time() > time(20, 0, 1)):
